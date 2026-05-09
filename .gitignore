@@ -2,3 +2,6 @@
 uv.lock
 
 todo.md
+notes.md
+
+*.parquet

@@ -5,3 +5,7 @@ todo.md
 notes.md
 
 *.parquet
+*.db
+*.duckdb
+*.db.tmp
+*.ipynb

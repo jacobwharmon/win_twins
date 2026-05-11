@@ -1,8 +1,9 @@
-import requests
-import polars as pl
+from datetime import datetime
 from pathlib import Path
 from time import sleep
-from datetime import datetime
+
+import polars as pl
+import requests
 
 TEAMS_URL = "https://statsapi.mlb.com/api/v1/teams?sportId=1"
 
@@ -15,7 +16,6 @@ END_SEASON = datetime.now().year
 teams = requests.get(TEAMS_URL).json()["teams"]
 
 for season in range(START_SEASON, END_SEASON + 1):
-
     print(f"\n=== Season {season} ===")
 
     rows = []
@@ -38,14 +38,16 @@ for season in range(START_SEASON, END_SEASON + 1):
             for p in roster:
                 person = p["person"]
 
-                rows.append({
-                    "player_id": person["id"],
-                    "full_name": person["fullName"],
-                    "team_id": team_id,
-                    "season": season,
-                    "position": p.get("position", {}).get("abbreviation"),
-                    "status": p.get("status", {}).get("description"),
-                })
+                rows.append(
+                    {
+                        "player_id": person["id"],
+                        "full_name": person["fullName"],
+                        "team_id": team_id,
+                        "season": season,
+                        "position": p.get("position", {}).get("abbreviation"),
+                        "status": p.get("status", {}).get("description"),
+                    }
+                )
 
             print(f"Loaded {team['name']} ({season})")
 
@@ -54,17 +56,10 @@ for season in range(START_SEASON, END_SEASON + 1):
 
         sleep(0.25)
 
-    df = (
-        pl.DataFrame(rows)
-        .unique(subset=["player_id"])
-        .sort("player_id")
-    )
+    df = pl.DataFrame(rows).unique(subset=["player_id"]).sort("player_id")
 
     out_path = out_dir / f"players_{season}.parquet"
 
-    df.write_parquet(
-        out_path,
-        compression="zstd"
-    )
+    df.write_parquet(out_path, compression="zstd")
 
     print(f"Wrote {out_path} ({df.height:,} players)")

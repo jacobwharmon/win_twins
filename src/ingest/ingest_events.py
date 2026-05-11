@@ -1,8 +1,9 @@
-import requests
-import polars as pl
-from pathlib import Path
 from datetime import date
+from pathlib import Path
 from time import sleep
+
+import polars as pl
+import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
@@ -23,10 +24,7 @@ out_dir.mkdir(parents=True, exist_ok=True)
 session = requests.Session()
 
 retry_strategy = Retry(
-    total=5,
-    backoff_factor=1.0,
-    status_forcelist=[429, 500, 502, 503, 504],
-    allowed_methods=["GET"]
+    total=5, backoff_factor=1.0, status_forcelist=[429, 500, 502, 503, 504], allowed_methods=["GET"]
 )
 
 adapter = HTTPAdapter(max_retries=retry_strategy)
@@ -45,15 +43,9 @@ games_df = pl.read_parquet(f"{GAMES_PATH}/*.parquet")
 # --------------------------------------------------
 
 for season in SEASONS:
-
     print(f"\nProcessing season {season}")
 
-    season_games = (
-        games_df
-        .filter(pl.col("season") == season)
-        .select("game_pk")
-        .unique()
-    )
+    season_games = games_df.filter(pl.col("season") == season).select("game_pk").unique()
 
     game_pks = season_games.to_series().to_list()
 
@@ -67,11 +59,7 @@ for season in SEASONS:
     # --------------------------------------------------
 
     for i, game_pk in enumerate(game_pks):
-
-        url = (
-            "https://statsapi.mlb.com/api/v1.1/"
-            f"game/{game_pk}/feed/live"
-        )
+        url = f"https://statsapi.mlb.com/api/v1.1/game/{game_pk}/feed/live"
 
         try:
             response = session.get(url, timeout=(10, 60))
@@ -79,46 +67,36 @@ for season in SEASONS:
 
             data = response.json()
 
-            plays = (
-                data.get("liveData", {})
-                    .get("plays", {})
-                    .get("allPlays", [])
-            )
+            plays = data.get("liveData", {}).get("plays", {}).get("allPlays", [])
 
             for play in plays:
-
                 matchup = play.get("matchup", {})
                 result = play.get("result", {})
                 count = play.get("count", {})
                 about = play.get("about", {})
 
-                rows.append({
-                    "game_pk": game_pk,
-
-                    "at_bat_index": about.get("atBatIndex"),
-                    "inning": about.get("inning"),
-                    "half_inning": about.get("halfInning"),
-
-                    "event_type": result.get("eventType"),
-                    "event": result.get("event"),
-                    "description": result.get("description"),
-
-                    "batter_id": matchup.get("batter", {}).get("id"),
-                    "pitcher_id": matchup.get("pitcher", {}).get("id"),
-
-                    "balls": count.get("balls"),
-                    "strikes": count.get("strikes"),
-                    "outs": count.get("outs"),
-
-                    "start_time": about.get("startTime"),
-                    "end_time": about.get("endTime"),
-
-                    "is_scoring_play": about.get("isScoringPlay"),
-                    "rbi": result.get("rbi"),
-
-                    # raw payload preserved
-                    "raw_json": str(play),
-                })
+                rows.append(
+                    {
+                        "game_pk": game_pk,
+                        "at_bat_index": about.get("atBatIndex"),
+                        "inning": about.get("inning"),
+                        "half_inning": about.get("halfInning"),
+                        "event_type": result.get("eventType"),
+                        "event": result.get("event"),
+                        "description": result.get("description"),
+                        "batter_id": matchup.get("batter", {}).get("id"),
+                        "pitcher_id": matchup.get("pitcher", {}).get("id"),
+                        "balls": count.get("balls"),
+                        "strikes": count.get("strikes"),
+                        "outs": count.get("outs"),
+                        "start_time": about.get("startTime"),
+                        "end_time": about.get("endTime"),
+                        "is_scoring_play": about.get("isScoringPlay"),
+                        "rbi": result.get("rbi"),
+                        # raw payload preserved
+                        "raw_json": str(play),
+                    }
+                )
 
             if i % 100 == 0:
                 print(f"{season}: {i}/{len(game_pks)} games")
@@ -137,10 +115,7 @@ for season in SEASONS:
 
     output_path = out_dir / f"events_{season}.parquet"
 
-    season_df.write_parquet(
-        output_path,
-        compression="zstd"
-    )
+    season_df.write_parquet(output_path, compression="zstd")
 
     print(f"\n{season}: {season_df.shape[0]} events written")
 
@@ -149,11 +124,6 @@ for season in SEASONS:
     # --------------------------------------------------
 
     if failed_games:
-
-        pl.DataFrame({
-            "game_pk": failed_games
-        }).write_csv(
-            out_dir / f"failed_games_{season}.csv"
-        )
+        pl.DataFrame({"game_pk": failed_games}).write_csv(out_dir / f"failed_games_{season}.csv")
 
         print(f"{season}: {len(failed_games)} failed games logged")

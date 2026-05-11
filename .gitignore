@@ -1,8 +1,11 @@
 .venv/
+.vscode/
 uv.lock
 
 todo.md
 notes.md
+
+logs/
 
 *.parquet
 *.db

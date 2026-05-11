@@ -1,5 +1,6 @@
 .venv/
 .vscode/
+.ruff_cache/
 uv.lock
 
 todo.md

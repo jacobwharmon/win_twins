@@ -1,7 +1,6 @@
 with raw_events as (
 
-    select *
-    from {{ source('raw', 'events') }}
+    select * from {{ source('raw', 'events') }}
 
 ),
 
@@ -30,8 +29,7 @@ typed as (
 
 final as (
 
-    select *
-    from typed
+    select * from typed
 
 )
 

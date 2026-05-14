@@ -6,7 +6,9 @@ import requests
 
 SEASONS = range(2020, date.today().year + 1)
 
-out_dir = Path("../../data/raw/games")
+BASE_DIR = Path(__file__).resolve().parents[2]
+
+out_dir = BASE_DIR / "data" / "raw" / "games"
 out_dir.mkdir(parents=True, exist_ok=True)
 
 for season in SEASONS:

@@ -12,10 +12,12 @@ from urllib3.util.retry import Retry
 # CONFIG
 # --------------------------------------------------
 
-GAMES_PATH = "../../data/raw/games"
+BASE_DIR = Path(__file__).resolve().parents[2]
+
+GAMES_PATH = BASE_DIR / "data" / "raw" / "games"
 SEASONS = range(2020, date.today().year + 1)
 
-out_dir = Path("../../data/raw/events")
+out_dir = BASE_DIR / "data" / "raw" / "events"
 out_dir.mkdir(parents=True, exist_ok=True)
 
 # --------------------------------------------------

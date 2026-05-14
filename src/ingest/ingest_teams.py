@@ -5,7 +5,9 @@ import requests
 
 URL = "https://statsapi.mlb.com/api/v1/teams?sportId=1"
 
-out_dir = Path("../../data/raw/teams")
+BASE_DIR = Path(__file__).resolve().parents[2]
+
+out_dir = BASE_DIR / "data" / "raw" / "teams"
 out_dir.mkdir(parents=True, exist_ok=True)
 
 data = requests.get(URL).json()["teams"]

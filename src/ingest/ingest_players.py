@@ -7,7 +7,9 @@ import requests
 
 TEAMS_URL = "https://statsapi.mlb.com/api/v1/teams?sportId=1"
 
-out_dir = Path("../../data/raw/players")
+BASE_DIR = Path(__file__).resolve().parents[2]
+
+out_dir = BASE_DIR / "data" / "raw" / "players"
 out_dir.mkdir(parents=True, exist_ok=True)
 
 START_SEASON = 2020

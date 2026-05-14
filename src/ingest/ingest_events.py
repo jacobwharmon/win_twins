@@ -1,3 +1,4 @@
+import json
 from datetime import date
 from pathlib import Path
 from time import sleep
@@ -18,7 +19,7 @@ out_dir = Path("../../data/raw/events")
 out_dir.mkdir(parents=True, exist_ok=True)
 
 # --------------------------------------------------
-# SESSION + RETRIES (IMPORTANT FIX)
+# SESSION
 # --------------------------------------------------
 
 session = requests.Session()
@@ -94,7 +95,7 @@ for season in SEASONS:
                         "is_scoring_play": about.get("isScoringPlay"),
                         "rbi": result.get("rbi"),
                         # raw payload preserved
-                        "raw_json": str(play),
+                        "raw_json": json.dumps(play),
                     }
                 )
 
